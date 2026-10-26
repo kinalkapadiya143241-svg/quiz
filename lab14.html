@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz Application</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .quiz-container {
+            background: white;
+            width: 500px;
+            max-width: 100%;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 35px rgba(0, 0, 0, 0.2);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .header h1 {
+            color: #6c5ce7;
+            margin-bottom: 8px;
+            font-size: 30px;
+        }
+
+        .header p {
+            color: #777;
+            margin: 0;
+        }
+
+        .progress-info {
+            display: flex;
+            justify-content: space-between;
+            color: #555;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+
+        .progress-bar {
+            height: 8px;
+            background: #eeeaff;
+            border-radius: 10px;
+            margin-bottom: 25px;
+            overflow: hidden;
+        }
+
+        #progressFill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            border-radius: 10px;
+            transition: width 0.3s;
+        }
+
+        #question {
+            color: #252545;
+            font-size: 21px;
+            line-height: 1.5;
+            margin-bottom: 22px;
+        }
+
+        .option {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            margin: 12px 0;
+            border: 2px solid #e5e5f0;
+            border-radius: 12px;
+            background: white;
+            cursor: pointer;
+            text-align: left;
+            font-size: 16px;
+            transition: 0.2s;
+        }
+
+        .option:hover:not(:disabled) {
+            border-color: #7667e8;
+            background: #f5f3ff;
+            transform: translateY(-2px);
+        }
+
+        .option:disabled {
+            cursor: default;
+        }
+
+        .correct {
+            background: #dcfce7;
+            border-color: #22c55e;
+            color: #166534;
+        }
+
+        .wrong {
+            background: #fee2e2;
+            border-color: #ef4444;
+            color: #991b1b;
+        }
+
+        #nextBtn, #restartBtn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 17px;
+            font-weight: bold;
+            margin-top: 20px;
+            transition: 0.2s;
+        }
+
+        #nextBtn:hover:not(:disabled), #restartBtn:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+        }
+
+        #nextBtn:disabled {
+            background: #c7c7d1;
+            cursor: not-allowed;
+        }
+
+        #result {
+            text-align: center;
+            padding: 15px 0;
+        }
+
+        .result-icon {
+            font-size: 65px;
+            margin: 10px 0;
+        }
+
+        #result h2 {
+            color: #6c5ce7;
+            font-size: 28px;
+        }
+
+        #score {
+            color: #252545;
+            font-size: 25px;
+            font-weight: bold;
+        }
+
+        #message {
+            color: #666;
+            font-size: 17px;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        @media (max-width: 480px) {
+            .quiz-container {
+                padding: 22px;
+            }
+
+            .header h1 {
+                font-size: 25px;
+            }
+
+            #question {
+                font-size: 19px;
+            }
+
+            .option {
+                font-size: 15px;
+                padding: 13px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="quiz-container">
+
+        <div class="header">
+            <h1>🧠 Quiz Time</h1>
+            <p>Test your web development knowledge!</p>
+        </div>
+
+        <div id="quiz">
+
+            <div class="progress-info">
+                <span id="progress"></span>
+                <span id="percentage">0% Completed</span>
+            </div>
+
+            <div class="progress-bar">
+                <div id="progressFill"></div>
+            </div>
+
+            <h2 id="question"></h2>
+
+            <div id="options"></div>
+
+            <button id="nextBtn" disabled onclick="nextQuestion()">
+                Next Question →
+            </button>
+
+        </div>
+
+        <div id="result" class="hidden">
+            <div class="result-icon" id="resultIcon">🏆</div>
+            <h2>Quiz Completed!</h2>
+            <p id="score"></p>
+            <p id="message"></p>
+            <button id="restartBtn" onclick="restartQuiz()">
+                🔄 Try Again
+            </button>
+        </div>
+
+    </div>
+
+    <script>
+        const questions = [
+            {
+                question: "1. Which language is used to create web pages?",
+                options: ["Java", "HTML", "Python", "C"],
+                answer: "HTML"
+            },
+            {
+                question: "2. Which language is used for web page styling?",
+                options: ["CSS", "SQL", "C++", "Java"],
+                answer: "CSS"
+            },
+            {
+                question: "3. Which language adds interactivity to web pages?",
+                options: ["HTML", "CSS", "JavaScript", "SQL"],
+                answer: "JavaScript"
+            },
+            {
+                question: "4. Which tag creates the largest HTML heading?",
+                options: ["<h6>", "<head>", "<h1>", "<p>"],
+                answer: "<h1>"
+            },
+            {
+                question: "5. Which symbol is used for single-line JavaScript comments?",
+                options: ["<!-- -->", "//", "#", "**"],
+                answer: "//"
+            }
+        ];
+
+        let currentQuestion = 0;
+        let score = 0;
+        let answered = false;
+
+        function loadQuestion() {
+            answered = false;
+
+            const q = questions[currentQuestion];
+
+            document.getElementById("progress").textContent =
+                "Question " + (currentQuestion + 1) +
+                " of " + questions.length;
+
+            document.getElementById("percentage").textContent =
+                Math.round((currentQuestion / questions.length) * 100) +
+                "% Completed";
+
+            document.getElementById("progressFill").style.width =
+                (currentQuestion / questions.length) * 100 + "%";
+
+            document.getElementById("question").textContent = q.question;
+
+            const optionsDiv = document.getElementById("options");
+            optionsDiv.innerHTML = "";
+
+            q.options.forEach(function(option) {
+                const button = document.createElement("button");
+
+                button.textContent = option;
+                button.className = "option";
+                button.onclick = function() {
+                    checkAnswer(button, option);
+                };
+
+                optionsDiv.appendChild(button);
+            });
+
+            document.getElementById("nextBtn").disabled = true;
+
+            document.getElementById("nextBtn").textContent =
+                currentQuestion === questions.length - 1
+                    ? "Show Result →"
+                    : "Next Question →";
+        }
+
+        function checkAnswer(button, selectedAnswer) {
+            if (answered) return;
+
+            answered = true;
+
+            const correctAnswer = questions[currentQuestion].answer;
+            const buttons = document.querySelectorAll(".option");
+
+            buttons.forEach(function(btn) {
+                btn.disabled = true;
+
+                if (btn.textContent === correctAnswer) {
+                    btn.classList.add("correct");
+                }
+            });
+
+            if (selectedAnswer === correctAnswer) {
+                score++;
+            } else {
+                button.classList.add("wrong");
+            }
+
+            document.getElementById("nextBtn").disabled = false;
+        }
+
+        function nextQuestion() {
+            if (!answered) return;
+
+            currentQuestion++;
+
+            if (currentQuestion < questions.length) {
+                loadQuestion();
+            } else {
+                showResult();
+            }
+        }
+
+        function showResult() {
+            document.getElementById("quiz").classList.add("hidden");
+            document.getElementById("result").classList.remove("hidden");
+
+            document.getElementById("score").textContent =
+                "Your Score: " + score + " / " + questions.length;
+
+            const percentage = (score / questions.length) * 100;
+
+            let message = "";
+            let icon = "";
+
+            if (percentage === 100) {
+                message = "Excellent! You got every answer right!";
+                icon = "🏆";
+            } else if (percentage >= 60) {
+                message = "Great job! Keep learning and improving!";
+                icon = "🎉";
+            } else {
+                message = "Keep practicing. You can do it!";
+                icon = "📚";
+            }
+
+            document.getElementById("message").textContent = message;
+            document.getElementById("resultIcon").textContent = icon;
+            document.getElementById("progressFill").style.width = "100%";
+        }
+
+        function restartQuiz() {
+            currentQuestion = 0;
+            score = 0;
+            answered = false;
+
+            document.getElementById("quiz").classList.remove("hidden");
+            document.getElementById("result").classList.add("hidden");
+
+            loadQuestion();
+        }
+
+        loadQuestion();
+    </script>
+
+</body>
+</html>
